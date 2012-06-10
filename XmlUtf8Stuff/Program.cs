@@ -1,27 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Serialization;
-
-namespace XmlUtf8Stuff
+﻿namespace XmlUtf8Stuff
 {
-	class Program
+	using System.Xml;
+	using System.Xml.Serialization;
+	using System.Text;
+	using System;
+	using System.IO;
+
+	public class Program
 	{
-		static void Main(string[] args)
+		private static void Main()
 		{
-			var entity = new Entity()
-			             	{
-			             		Bar = "Bar",
-			             		Foo = "Foo",
-			             	};
+			Entity entity = new Entity
+			{
+				Bar = "Bar",
+				Foo = "Foo",
+			};
 
 			var result = entity.SerializeXml();
 
-			if(result[0] == 60)
+			if (result[0] == 60)
 			{
 				Console.WriteLine("YAY");
 			}
@@ -48,27 +45,24 @@ namespace XmlUtf8Stuff
 	}
 
 
-	static class Helper
+	public static class XmlSerializerHelper
 	{
-		public static string SerializeXml<T>(this T toSerialize)
+		public static string SerializeXml<TObject>(this TObject objectToSerialize)
 		{
-			string xml;
-
-			using (var stream = new MemoryStream())
+			using (var memoryStream = new MemoryStream())
 			{
-				var serializer = new XmlSerializer(typeof(T));
+				XmlSerializer xmlSerializer = new XmlSerializer(typeof(TObject));
 
-				var xmlnsEmpty = new XmlSerializerNamespaces();
-				xmlnsEmpty.Add("", "");
+				XmlSerializerNamespaces xmlnsEmpty = new XmlSerializerNamespaces(new []
+					{
+						new XmlQualifiedName(string.Empty,string.Empty),
+					});
 
-				var xmlTextWriter = new XmlTextWriter(stream, Encoding.UTF8); 
-				serializer.Serialize(xmlTextWriter, toSerialize, xmlnsEmpty);
+				XmlTextWriter xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8);
+				xmlSerializer.Serialize(xmlTextWriter, objectToSerialize, xmlnsEmpty);
 
-				xml = Encoding.UTF8.GetString(stream.GetBuffer(), 0, (int)stream.Length);
+				return Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
 			}
-
-			return xml;
-		} 
-
+		}
 	}
 }

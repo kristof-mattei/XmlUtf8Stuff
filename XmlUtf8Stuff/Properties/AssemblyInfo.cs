@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("XmlUtf8Stuff")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("MCK")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("XmlUtf8Stuff")]
-[assembly: AssemblyCopyright("Copyright © MCK 2012")]
+[assembly: AssemblyCopyright("Copyright ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("a967f73e-a8cb-4889-b7c7-08490e551441")]
+[assembly: Guid("a0dfbdf9-0f6e-4aba-9a6b-7719c93ae5ef")]
 
 // Version information for an assembly consists of the following four values:
 //
