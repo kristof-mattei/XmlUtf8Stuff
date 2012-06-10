@@ -1,24 +1,28 @@
 ﻿namespace XmlUtf8Stuff
 {
-	using System.Xml;
-	using System.Xml.Serialization;
-	using System.Text;
 	using System;
 	using System.IO;
+	using System.Text;
+	using System.Xml;
+	using System.Xml.Serialization;
 
 	public class Program
 	{
 		private static void Main()
 		{
 			Entity entity = new Entity
-			{
-				Bar = "Bar",
-				Foo = "Foo",
-			};
+				{
+					Bar = "Bar",
+					Foo = "Foo",
+				};
 
-			var result = entity.SerializeXml();
+			string withBom = entity.SerializeXmlWithBom();
+			string withoutBom = entity.SerializeXmlWithoutBom();
+			string withStringReader = entity.SerializeXmlWithStringWriter();
 
-			if (result[0] == 60)
+			// validate results with debugger
+
+			if (withBom[0] == 60)
 			{
 				Console.WriteLine("YAY");
 			}
@@ -27,12 +31,11 @@
 				Console.WriteLine("Y U NO START WITH <?");
 			}
 
-			//XDocument.
 
-			//XmlSerializer foo = new XmlSerializer(typeof (Entity));
-			//var entity2 = (Entity)foo.Deserialize(new StringReader(result));
+			XmlSerializer xmlSerializer = new XmlSerializer(typeof (Entity));
+			StringReader stringReader = new StringReader(withBom /* result is the value from the database */);
 
-			//var foo = XDocument.Parse(result);
+			Entity deserializedEntity = (Entity) xmlSerializer.Deserialize(stringReader);
 
 			Console.ReadLine();
 		}
@@ -47,21 +50,50 @@
 
 	public static class XmlSerializerHelper
 	{
-		public static string SerializeXml<TObject>(this TObject objectToSerialize)
-		{
-			using (var memoryStream = new MemoryStream())
+		private static readonly XmlSerializerNamespaces XmlnsEmpty = new XmlSerializerNamespaces(new[]
 			{
-				XmlSerializer xmlSerializer = new XmlSerializer(typeof(TObject));
+				new XmlQualifiedName(string.Empty, string.Empty),
+			});
 
-				XmlSerializerNamespaces xmlnsEmpty = new XmlSerializerNamespaces(new []
-					{
-						new XmlQualifiedName(string.Empty,string.Empty),
-					});
+		public static string SerializeXmlWithStringWriter<TObject>(this TObject objectToSerialize)
+		{
+			XmlSerializer xmlSerializer = new XmlSerializer(typeof (TObject));
 
-				XmlTextWriter xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8);
-				xmlSerializer.Serialize(xmlTextWriter, objectToSerialize, xmlnsEmpty);
 
-				return Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+			StringWriter stringWriter = new StringWriter();
+
+			xmlSerializer.Serialize(stringWriter, objectToSerialize, XmlnsEmpty);
+
+			return stringWriter.ToString();
+		}
+
+		public static string SerializeXmlWithBom<TObject>(this TObject objectToSerialize)
+		{
+			using (MemoryStream memoryStream = new MemoryStream())
+			{
+				XmlSerializer xmlSerializer = new XmlSerializer(typeof (TObject));
+
+
+				XmlTextWriter xmlWriter = new XmlTextWriter(memoryStream, Encoding.UTF8);
+
+				xmlSerializer.Serialize(xmlWriter, objectToSerialize, XmlnsEmpty);
+
+				return Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int) memoryStream.Length);
+			}
+		}
+
+
+		public static string SerializeXmlWithoutBom<TObject>(this TObject objectToSerialize)
+		{
+			using (MemoryStream memoryStream = new MemoryStream())
+			{
+				XmlSerializer xmlSerializer = new XmlSerializer(typeof (TObject));
+
+				XmlTextWriter xmlWriter = new XmlTextWriter(memoryStream, new UTF8Encoding(false));
+
+				xmlSerializer.Serialize(xmlWriter, objectToSerialize, XmlnsEmpty);
+
+				return Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int) memoryStream.Length);
 			}
 		}
 	}
